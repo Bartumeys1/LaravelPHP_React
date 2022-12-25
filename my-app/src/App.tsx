@@ -7,6 +7,8 @@ import DefaultLayout from "./components/conteiners/default";
 
 import HomePage from "./components/home";
 import NoMatchPage from "./components/noMatch";
+import CreateProduct from "./components/product/createProduct";
+
 
 function App() {
   return (
@@ -15,6 +17,7 @@ function App() {
         <Route index element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="add_product" element={<CreateProduct />} />
 
         <Route path="*" element={<NoMatchPage />} />
       </Route>

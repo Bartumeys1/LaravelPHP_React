@@ -28,7 +28,13 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $input = $request->all();
+        $product = Product::create($input);
+        return response()->json([
+            "success" => true,
+            "message" => "Product created",
+            "data"=> $product
+        ]);
     }
 
     /**
@@ -62,6 +68,11 @@ class ProductController extends Controller
      */
     public function destroy($id)
     {
-        //
+        Product::destroy($id);
+
+        return response()->json([
+            "success" => true,
+            "message"=>"Product deleted"
+        ]);
     }
 }

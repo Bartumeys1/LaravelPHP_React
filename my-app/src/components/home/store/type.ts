@@ -9,10 +9,12 @@ export interface IProductItem {
     list: Array<IProductItem>,
     currentProduct: IProductItem | null,
     message: string,
+    current_page:number,
   }
 
   export enum ProductActionTypes {
     PRODUCT_LIST = "PRODUCT_LIST",
     SET_CURRENT_PRODUCT = "SET_CURRENT_PRODUCT",
-    CREATE_PRODUCT = "CREATE_PRODUCT"
+    CREATE_PRODUCT = "CREATE_PRODUCT",
+    PRODUCT_PAGE = "PRODUCT_PAGE",
   }

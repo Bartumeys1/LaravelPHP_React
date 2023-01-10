@@ -4,6 +4,7 @@ const initialState : IProductState={
     list:[],
     currentProduct: null,
     message: "",
+    current_page:1,
 };
 
 export const productReducer = (state= initialState , action: any):IProductState =>{
@@ -12,7 +13,7 @@ export const productReducer = (state= initialState , action: any):IProductState 
         case ProductActionTypes.PRODUCT_LIST:{
             return{
                 ...state, 
-                list: [...action.payload]
+                list: [...action.payload.data]
             }
         }
         case ProductActionTypes.SET_CURRENT_PRODUCT:{
@@ -25,6 +26,12 @@ export const productReducer = (state= initialState , action: any):IProductState 
             return{
                 ...state, 
                 message: action.payload.message
+            }
+        }
+        case ProductActionTypes.PRODUCT_PAGE:{
+            return{
+                ...state, 
+                current_page: action.payload
             }
         }
         default:

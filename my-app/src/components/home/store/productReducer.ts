@@ -1,37 +1,20 @@
-import { IProductState, ProductActionTypes } from "./type";
+import { IProductState, ProductActions, ProductActionTypes } from "./type";
 
 const initialState : IProductState={
     list:[],
-    currentProduct: null,
-    message: "",
-    current_page:1,
+    current_page: 0,
+    total:0,
+    count_pages:0,
+    isLoaded:false
 };
 
-export const productReducer = (state= initialState , action: any):IProductState =>{
+export const productReducer = (state= initialState , action: ProductActions):IProductState =>{
 
     switch(action.type){
         case ProductActionTypes.PRODUCT_LIST:{
             return{
                 ...state, 
-                list: [...action.payload.data]
-            }
-        }
-        case ProductActionTypes.SET_CURRENT_PRODUCT:{
-            return{
-                ...state, 
-               currentProduct: action.payload
-            }
-        }
-        case ProductActionTypes.CREATE_PRODUCT:{
-            return{
-                ...state, 
-                message: action.payload.message
-            }
-        }
-        case ProductActionTypes.PRODUCT_PAGE:{
-            return{
-                ...state, 
-                current_page: action.payload
+                ...action.payload,
             }
         }
         default:

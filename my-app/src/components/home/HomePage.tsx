@@ -1,64 +1,67 @@
+import classNames from "classnames";
+import qs from "qs";
 import { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useActions } from "../../hooks/useActions";
 import { useTypedSelector } from "../../hooks/useTypedSelector";
 import http from "../../http_common";
 import Loader from "../loader";
-
+import { IProductSearch } from "./store/type";
 
 const HomePage = () => {
-  const dispatch = useDispatch();
-  const { list } = useTypedSelector((store) => store.product);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [findeName, setfindeName] = useState("");
-  const [maxPage, setMaxPage] = useState(1);
-
-  function getAllProducts(page: number = 1, name: string = "") {
-    http.get(`/api/products?page=${page}&name=${name}`).then((res) => {
-      dispatch({ type: "PRODUCT_LIST", payload: res.data });
-      setMaxPage(res.data.last_page);
-      setIsLoaded(true);
-    });
-  }
-
-  function getProductsByPage(page: number = 1, name: string = findeName) {
-    getAllProducts(page, name);
-    dispatch({ type: "PRODUCT_PAGE", payload: page });
-  }
-
-  function findeByName(name: string = "") {
-    http.get(`/api/products?name=${name}`).then((res) => {
-      dispatch({ type: "PRODUCT_LIST", payload: res.data });
-      setMaxPage(res.data.last_page);
-    });
-  }
+  const { list, isLoaded, count_pages, current_page, total } = useTypedSelector(
+    (store) => store.product
+  );
+  const { GetProductList } = useActions();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [search, setSearch] = useState<IProductSearch>({
+    name: searchParams.get("name") || "",
+    page: searchParams.get("page") || 1,
+  });
+  const navigate = useNavigate();
 
   useEffect(() => {
-    getAllProducts();
-  }, []);
+    GetProductList(search);
+  }, [search]);
 
-  const handleFindebyName = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setfindeName(event.target.value);
-    findeByName(event.target.value);
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const post = new FormData(e.currentTarget);
+    const findeName = post.get("searchField");
+    setSearch({ ...search, name: `${findeName}`, page: 1 });
+    GetProductList(search);
+  
+    navigate(
+      "/?" +
+        qs.stringify(
+          filterNonNull({ ...search, name: `${findeName}`, page: 1 })
+        )
+    );
   };
 
-  const pagePaginationBtn = () => {
-    let content = [];
-    for (let i = 0; i < maxPage; i++) {
-      content.push(
-        <li key={i + 1} className="page-item">
-          <a
-            className="page-link"
-            href={`#page=${i + 1}`}
-            onClick={() => getProductsByPage(i + 1)}
-          >
-            {i + 1}
-          </a>
-        </li>
-      );
-    }
-    return content;
-  };
+  function filterNonNull(obj: IProductSearch) {
+    return Object.fromEntries(Object.entries(obj).filter(([k, v]) => !!v));
+  }
+
+  const buttons = [];
+
+  for (let i = 1; i <= count_pages; i++) {
+    buttons.push(i);
+  }
+
+  const navigateButtons = buttons.map((page) => (
+    <li key={page} className="page-item">
+      <Link
+        className={classNames("page-link", { active: current_page === page })}
+        onClick={() => {
+          setSearch({ ...search, page });
+        }}
+        to={"?" + qs.stringify(filterNonNull({ ...search, page }))}
+      >
+        {page}
+      </Link>
+    </li>
+  ));
 
   const listItems = list.map((item, index) => (
     <tr key={item.id}>
@@ -72,7 +75,7 @@ const HomePage = () => {
           className="btn btn-danger"
           onClick={() => {
             http.delete(`/api/products/${item.id}`).then((res) => {
-              if (res.statusText === "OK") getAllProducts();
+              if (res.statusText === "OK") GetProductList(search);
             });
           }}
         >
@@ -94,17 +97,29 @@ const HomePage = () => {
           </Link>
         </div>
 
-        <div className="input-group rounded" style={{width:`500px`}}>
-          <input
-            type="search"
-            className="form-control mb-1 mt-1"
-            placeholder="Search"
-            aria-label="Search"
-            aria-describedby="search-addon"
-            onChange={handleFindebyName}
-            
-          />
-        </div>
+        <form onSubmit={handleSearchSubmit}>
+          <div className="row">
+            <div className="col">
+              <div className="input-group rounded" style={{ width: `500px` }}>
+                <input
+                  type="search"
+                  name="searchField"
+                  className="form-control mb-1 mt-1"
+                  placeholder="Search"
+                  aria-label="Search"
+                  aria-describedby="search-addon"
+                  defaultValue={search.name}
+                />
+                <input
+                  type={"submit"}
+                  className="btn btn-primary"
+                  value="Найти"
+                  style={{ marginLeft: 10, borderRadius: 5 }}
+                />
+              </div>
+            </div>
+          </div>
+        </form>
 
         <div className="row">
           <div className="col">
@@ -120,7 +135,7 @@ const HomePage = () => {
               </thead>
               <tbody>{listItems}</tbody>
             </table>
-            <nav aria-label="Page navigation example">
+            <nav aria-label="Page navigation">
               <ul className="pagination">
                 {/* <li className="page-item">
                   <a className="page-link" href="#" aria-label="Previous">
@@ -128,8 +143,7 @@ const HomePage = () => {
                     <span className="sr-only">Previous</span>
                   </a>
                 </li> */}
-                {/* Вставити елемент сторінок для пагування */}
-                {pagePaginationBtn()}
+                {navigateButtons}
                 {/* <li className="page-item">
       <a className="page-link" href="#" aria-label="Next">
         <span aria-hidden="true">&raquo;</span>

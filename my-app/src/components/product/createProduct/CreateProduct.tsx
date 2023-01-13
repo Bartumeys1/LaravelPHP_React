@@ -14,7 +14,6 @@ const CreateProduct =() => {
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        console.log(event);
 
         const product={
             name: inputRef1.current?.value,

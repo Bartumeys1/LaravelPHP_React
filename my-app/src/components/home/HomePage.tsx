@@ -1,7 +1,8 @@
 import classNames from "classnames";
+import { useFormik } from "formik";
 import qs from "qs";
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useActions } from "../../hooks/useActions";
 import { useTypedSelector } from "../../hooks/useTypedSelector";
 import http from "../../http_common";
@@ -17,28 +18,25 @@ const HomePage = () => {
   const [search, setSearch] = useState<IProductSearch>({
     name: searchParams.get("name") || "",
     page: searchParams.get("page") || 1,
+    count: searchParams.get("count") || 2,
   });
-  const navigate = useNavigate();
 
   useEffect(() => {
     GetProductList(search);
   }, [search]);
 
-  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const post = new FormData(e.currentTarget);
-    const findeName = post.get("searchField");
-    setSearch({ ...search, name: `${findeName}`, page: 1 });
-    GetProductList(search);
-  
-    navigate(
-      "/?" +
-        qs.stringify(
-          filterNonNull({ ...search, name: `${findeName}`, page: 1 })
-        )
-    );
+  const onSubmit = (values: IProductSearch) => {
+    const filter = { ...values, page: 1 };
+    setSearchParams(qs.stringify(filterNonNull(filter)));
+    setSearch(filter);
   };
 
+  const formik = useFormik({
+    initialValues: search,
+    onSubmit: onSubmit,
+  });
+
+  const { handleSubmit, handleChange, values } = formik;
   function filterNonNull(obj: IProductSearch) {
     return Object.fromEntries(Object.entries(obj).filter(([k, v]) => !!v));
   }
@@ -97,25 +95,44 @@ const HomePage = () => {
           </Link>
         </div>
 
-        <form onSubmit={handleSearchSubmit}>
+        <form onSubmit={handleSubmit}>
           <div className="row">
             <div className="col">
               <div className="input-group rounded" style={{ width: `500px` }}>
                 <input
+                  id="name"
                   type="search"
-                  name="searchField"
+                  name="name"
                   className="form-control mb-1 mt-1"
-                  placeholder="Search"
+                  placeholder="Search name"
                   aria-label="Search"
                   aria-describedby="search-addon"
-                  defaultValue={search.name}
+                  value={values.name}
+                  onChange={handleChange}
                 />
+
                 <input
                   type={"submit"}
                   className="btn btn-primary"
                   value="Найти"
-                  style={{ marginLeft: 10, borderRadius: 5 }}
+                  style={{ marginLeft: 10, marginRight: 10, borderRadius: 5 }}
                 />
+                <select
+                  id="count"
+                  name="count"
+                  onChange={handleChange}
+                  style={{
+                    width: "50px",
+                    position: "relative",
+                    borderRadius: "5px",
+                    border: "1px solid #ced4da",
+                  }}
+                >
+                  <option defaultValue="2">2</option>
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="15">15</option>
+                </select>
               </div>
             </div>
           </div>

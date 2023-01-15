@@ -6,35 +6,100 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
+/**
+ * @OA\Info(
+ *      version="1.0.0",
+ *      title="Api Project",
+ *      description="Demo my Project ",
+ *      @OA\Contact(
+ *          email="admin@gmail.com"
+ *      ),
+ *     @OA\License(
+ *         name="Apache 2.0",
+ *         url="https://www.apache.org/licenses/LICENSE-2.0.html"
+ *     )
+ * )
+ *
+
+ */
+
 class ProductController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * @OA\Get(
+     *     tags={"Product"},
+     *     path="/api/products",
+     *     @OA\Parameter(
+     *      name="page",
+     *      in="query",
+     *      required=true,
+     *      @OA\Schema(
+     *           type="string"
+     *      )
+     *   ),
+     *     @OA\Parameter(
+     *      name="name",
+     *      in="query",
+     *      required=false,
+     *      @OA\Schema(
+     *           type="string"
+     *      )
+     *   ),
+     *     @OA\Response(response="200", description="List Products.")
+     * )
      */
     public function index(Request $request)
     {
         $input = $request->all();
         $name = $input["name"] ?? "";
-        $countPagination = $input["pagination"] ?? "2";
+        $pagination = $input["count"] ?? "2";
         if (!empty($name))
         {
-            $products = Product::where("name", "LIKE" , "%$name%")->paginate($countPagination);
+            $products = Product::where("name", "LIKE" , "%$name%")->paginate($pagination);
             return response()->json($products,  200, ['Content-Type' => 'application/json;charset=UTF-8', 'Charset' => 'utf-8'],
                 JSON_UNESCAPED_UNICODE);
         }
-        $product = Product::paginate($countPagination);
+        $product = Product::paginate($pagination);
         return response()->json($product,  200, ['Content-Type' => 'application/json;charset=UTF-8', 'Charset' => 'utf-8'],
             JSON_UNESCAPED_UNICODE);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * @OA\Post(
+     ** path="/api/products",
+     *   tags={"Product"},
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+     *
+     * @OA\RequestBody(
+     *    required=true,
+     *    description="Pass user credentials",
+     *    @OA\JsonContent(
+     *       required={"name","detail"},
+     *       @OA\Property(property="name", type="string"),
+     *       @OA\Property(property="detail", type="string"),
+     *    ),
+     * ),
+     *   @OA\Response(
+     *      response=200,
+     *       description="Success",
+     *      @OA\MediaType(
+     *           mediaType="application/json",
+     *      )
+     *   ),
+     *   @OA\Response(
+     *      response=400,
+     *      description="Bad Request"
+     *   ),
+     *   @OA\Response(
+     *      response=404,
+     *      description="not found"
+     *   ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden"
+     *      )
+     *)
+     **/
     public function store(Request $request)
     {
         $input = $request->all();
@@ -82,7 +147,6 @@ class ProductController extends Controller
             return $this->sendError('Product not found.');
         }
         $product->delete();
-
         return response()->json([
             "success" => true,
             "message" => "Product deleted successfully.",
@@ -90,6 +154,5 @@ class ProductController extends Controller
         ],  200,
             ['Content-Type' => 'application/json;charset=UTF-8', 'Charset' => 'utf-8'],
             JSON_UNESCAPED_UNICODE);
-
     }
 }
